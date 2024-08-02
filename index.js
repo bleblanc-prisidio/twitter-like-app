@@ -1,27 +1,26 @@
 const express = require('express');
-const cors = require('cors'); // Import the cors package
+const request = require('request');
 
 const app = express();
+const API_URL = 'http://some-url.com/path'
 
-const PORT = process.env.PORT || 5000;
-
-// Use the cors middleware
-app.use(cors());
-
-app.use(express.json());
-
-app.use("/api", router);
-
-app.post('/api/data', (req, res) => {
-    const json = req.body;
-    res.status(200).json({message: 'JSON data received', data: json});
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
 });
 
-app.use((err, req, res, next) => {
-    console.log(err.stack);
-    res.status(500).json({error: "Internal Server Error"});
+app.get('/api', (req, res) => {
+    request(
+        { url: `${API_URL}`},
+        (error, response, body) => {
+            if (error || response.statusCode !== 200) {
+                return res.status(500).json({ type: 'error', message: error.message});
+            }
+
+            res.json(JSON.parse(body));
+        }
+    )
 })
 
-app.listen(PORT, () => {
-    console.log(`App is listening on port: ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`listening on ${PORT}`));
